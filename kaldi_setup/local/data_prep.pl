@@ -15,11 +15,11 @@ if (@ARGV != 4) {
 mkdir data unless -d data;
 mkdir $out_dir unless -d $out_dir;
 
-open(CSV, "<", "$db_base/$dataset.tsv") or die "cannot open dataset TSV file";
-open(SPKR,">", "$out_dir/utt2spk") or die "Could not open the output file $out_dir/utt2spk";
-open(GNDR,">", "$out_dir/utt2gender") or die "Could not open the output file $out_dir/utt2gender";
-open(TEXT,">", "$out_dir/text") or die "Could not open the output file $out_dir/text";
-open(WAV,">", "$out_dir/wav.scp") or die "Could not open the output file $out_dir/wav.scp";
+open(CSV, "<:encoding(UTF-8)", "$db_base/$dataset.tsv") or die "cannot open dataset TSV file";
+open(SPKR,">:encoding(UTF-8)", "$out_dir/utt2spk") or die "Could not open the output file $out_dir/utt2spk";
+open(GNDR,">:encoding(UTF-8)", "$out_dir/utt2gender") or die "Could not open the output file $out_dir/utt2gender";
+open(TEXT,">:encoding(UTF-8)", "$out_dir/text") or die "Could not open the output file $out_dir/text";
+open(WAV,">:encoding(UTF-8)", "$out_dir/wav.scp") or die "Could not open the output file $out_dir/wav.scp";
 my $header = <CSV>;
 while(<CSV>) {
   chomp;
@@ -41,6 +41,7 @@ while(<CSV>) {
   $text =~ s/ +/ /;
   #$text =~ tr/a-z/A-Z/;
   $text =~ tr/A-Z/a-z/;
+  $text =~ s/\h+/ /g;
   print TEXT "$uttId"," ","$text","\n";
   print GNDR "$uttId"," ","$gender","\n";
   print WAV "$uttId"," sox $db_base/$lang/clips/$filepath -t wav -r 16k -b 16 -e signed - |\n";

@@ -8,8 +8,16 @@
 
 . path.sh || exit 1
 
+
+use_g2p=False #when true, we use the g2p, else we put all words as junk
+
+. utils/parse_options.sh
+
+echo $use_g2p
+
+
 #set -e 
-if [ $# != 2 ]; then
+if [ $# != 3 ]; then
     echo "Usage: local/prepare_lm.sh <path_to_data> <lang>"
     exit 1;
 fi
@@ -17,8 +25,10 @@ fi
 
 data=$1
 lang=$2
+locdata=$3
 
-locdata=$data/local
+
+#locdata=$data/local
 locdict=$locdata/dict
 
 
@@ -30,7 +40,7 @@ if [ $lang != "en" ] && [ $lang != "fr" ]; then
 fi
 
 
-if [ ! -f data/cmudict ]; then
+if [ ! -d data/cmudict ]; then
     echo "--- Downloading CMU dictionary ..."
     svn co http://svn.code.sf.net/p/cmusphinx/code/trunk/cmudict data/cmudict || exit 1 ;
 fi
@@ -53,7 +63,9 @@ if [ $lang == "en" ]; then
     perl data/cmudict/scripts/make_baseform.pl \
          $locdict/cmudict /dev/stdout |\
         sed -e 's:^\([^\s(]\+\)([0-9]\+)\(\s\+\)\(.*\):\1\2\3:' | tr '[A-Z]' '[a-z]' > $locdict/cmudict-plain.txt
+    #sed -e 's:^\([^\s(]\+\)([0-9]\+)\(\s\+\)\(.*\):\1\2\3:' | tr '[a-z]' '[A-Z]' > $locdict/cmudict-plain.txt
 
+    
     echo "--- Searching for OOV words ..."
     awk 'NR==FNR{words[$1]; next;} !($1 in words)' \
         $locdict/cmudict-plain.txt $locdata/vocab-full.txt |\
@@ -69,9 +81,12 @@ if [ $lang == "en" ]; then
     wc -l $locdict/lexicon-iv.txt
 
 elif [ $lang == "fr" ]; then
-    dir=$data/local/dict
+    dir=$locdict
     text=$data 
 
+    #cat $dir/cmu_dict |  tr '[a-z]' '[A-Z]' > $dir/cmu_dict-plain.txt
+    cat $dir/cmu_dict | sed -e 's:^\([^\s(]\+\)([0-9]\+)\(\s\+\)\(.*\):\1\2\3:' | sed -E 's/\([0-9]*\)//g' >  $dir/cmudict-plain.txt
+    
     echo "--- Preparing the corpus from data/train/text transcripts ---"
     corpusfile=$dir/corpus
     cut -f2- -d' ' < $text/text | sed -e 's:[ ]\+: :g' > $corpusfile
@@ -81,8 +96,14 @@ elif [ $lang == "fr" ]; then
     sed -i '1i-pau-\n</s>\n<s>\n<unk>' $dir/vocab-full.txt
 
     echo "--- Searching for OOV words ---"
-    awk 'NR==FNR{words[$1]; next;} !($1 in words)' $dir/cmu_dict $dir/vocab-full.txt | egrep -v '<.?s>' > $dir/vocab-oov.txt
+    awk 'NR==FNR{words[$1]; next;} !($1 in words)' $dir/cmudict-plain.txt $dir/vocab-full.txt | egrep -v '<.?s>' > $dir/vocab-oov.txt
 
+    awk 'NR==FNR{words[$1]; next;} ($1 in words)' $dir/vocab-full.txt $dir/cmudict-plain.txt  | egrep -v '<.?s>' > $dir/lexicon-iv.txt
+
+    wc -l $locdict/vocab-oov.txt
+    wc -l $locdict/lexicon-iv.txt
+
+    
 fi
 
 if [ ! -f conf/g2p/$lang/g2p_model ]; then
@@ -92,30 +113,42 @@ fi
 
 #sequitur=$KALDI_ROOT/tools/sequitur-g2p
 #export PATH=$PATH:$sequitur/bin
-#export PYTHONPATH=$PYTHONPATH:`utils/make_absolute.sh $sequitur/lib/python*/site-packages`
+#export PYTHONPATH=$PYTHONPATH:`utils/make_absolute.sh $sequitur/lib/python*/site-pac!!kages`
 
-if ! g2p=`which g2p.py` ; then
-  echo "The Sequitur was not found !"
-  echo "Go to $KALDI_ROOT/tools and execute extras/install_sequitur.sh"
-  exit 1
+
+if [ "$use_g2p" == "True" ]; then
+    echo "--- Preparing pronunciations for OOV words ..."
+
+    if ! g2p=`which g2p.py` ; then
+        echo "The Sequitur was not found !"
+        echo "Go to $KALDI_ROOT/tools and execute extras/install_sequitur.sh"
+        exit 1
+    fi
+
+    g2p.py --model=conf/g2p/$lang/g2p_model --apply $locdict/vocab-oov.txt > $locdict/lexicon-oov.txt
+else
+    #awk '{ print $1 "\toov"}' $locdict/vocab-oov.txt > $locdict/lexicon-oov.txt
+    touch $locdict/lexicon-oov.txt
 fi
 
-echo "--- Preparing pronunciations for OOV words ..."
-g2p.py --model=conf/g2p/$lang/g2p_model --apply $locdict/vocab-oov.txt > $locdict/lexicon-oov.txt
-
 cat $locdict/lexicon-oov.txt $locdict/lexicon-iv.txt |\
-  sort > $locdict/lexicon.txt
+  sort -u > $locdict/lexicon.txt
 rm $locdict/lexiconp.txt 2>/dev/null || true
 
 echo "--- Prepare phone lists ..."
+#echo -e 'SIL'\\n'oov' > $locdict/silence_phones.txt
 echo SIL > $locdict/silence_phones.txt
 echo SIL > $locdict/optional_silence.txt
 grep -v -w sil $locdict/lexicon.txt | \
   awk '{for(n=2;n<=NF;n++) { p[$n]=1; }} END{for(x in p) {print x}}' |\
   sort > $locdict/nonsilence_phones.txt
 
+   #sed -i '/oov/d' $locdict/nonsilence_phones.txt 
+
 echo "--- Adding <unk> to the lexicon ..."
 echo -e "<unk>\tSIL" >> $locdict/lexicon.txt
+echo -e 'SIL'\\n'oov' > $locdict/silence_phones.txt
+echo -e "!SIL\tSIL" >> $locdict/lexicon.txt
 
 # Some downstream scripts expect this file exists, even if empty
 touch $locdict/extra_questions.txt
