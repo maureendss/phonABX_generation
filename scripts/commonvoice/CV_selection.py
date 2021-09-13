@@ -22,6 +22,8 @@ def get_dur(mp3, audio_dir):
 
 def select_subset(df, n_spk, tgt_dur, accent=None, balanced_gender=True, add_precaution_spks=False):
 
+    print("n_spk = ", n_spk)
+
     if add_precaution_spks:
         tgt_dur= (tgt_dur/n_spk)*(n_spk+4)
         n_spk+=4
@@ -42,7 +44,8 @@ def select_subset(df, n_spk, tgt_dur, accent=None, balanced_gender=True, add_pre
     df_start=len(df)
       
     #2. filter out speakers with not enough data
-
+    print("n_spk = ", n_spk)
+    
     tgt_dur_spk = float(tgt_dur) /  n_spk
     df_spk = df.groupby('client_id')['dur'].sum()
     spks=list(df_spk[df_spk >= tgt_dur_spk].index)
@@ -59,7 +62,7 @@ def select_subset(df, n_spk, tgt_dur, accent=None, balanced_gender=True, add_pre
             
     df_m = df[df["gender"] == "male"]
     df_f = df[df["gender"] ==  "female"]
-
+    print("n_spk = ", n_spk)
     if not len(df_m['client_id'].unique()) >= n_spk / 2 or not len(df_f['client_id'].unique()) >= n_spk / 2 :
 
         raise ValueError('Not enough speakers of each gender for the taarget duration. It could be becuse a lot of speakers have not entered their the gender information. Try setting "balanced_gender" to false or reducing tgt_dur.')
@@ -69,11 +72,13 @@ def select_subset(df, n_spk, tgt_dur, accent=None, balanced_gender=True, add_pre
         finalspks = set()
         for ac in accent :
             a=df_m[df_m["accent"] == ac]['client_id']
-            spks= list(list(np.random.choice(df_m[df_m["accent"] == ac]['client_id'].unique(),int(n_spk/2/len(accent)))) + list(np.random.choice(df_f[df_f["accent"] == ac]['client_id'].unique(),int(n_spk/2/len(accent)))))
+            spks= list(list(np.random.choice(df_m[df_m["accent"] == ac]['client_id'].unique(),int(n_spk/2/len(accent)), replace=False)) + list(np.random.choice(df_f[df_f["accent"] == ac]['client_id'].unique(),int(n_spk/2/len(accent)), replace=False)))
             for x in spks:
                 finalspks.add(x)
     else:
-        finalspks = set(list(np.random.choice(df_m['client_id'].unique(),int(n_spk/2))) + list(np.random.choice(df_f['client_id'].unique(),int(n_spk/2))))
+        print("n_spk/2 = ", int(n_spk/2))
+        print("n_spk/2 = ", n_spk/2)
+        finalspks = set(list(np.random.choice(df_m['client_id'].unique(),int(n_spk/2), replace=False)) + list(np.random.choice(df_f['client_id'].unique(),int(n_spk/2), replace=False)))
         
     print(len(finalspks))
     print("male: ", len(df_m['client_id'].unique()))
@@ -106,7 +111,7 @@ if __name__ == "__main__":
     parser.add_argument("lang", help="language code in CV format")    
     parser.add_argument('output_tsv', type=str, help="path to the output tsv")
     
-    parser.add_argument("--tgt_spk", type=int, help='target number of speakers, must be an even number', default=24)
+    parser.add_argument("--tgt_spk", type=int, help='target number of shespeakers, must be an even number', default=24)
     parser.add_argument("--tgt_dur", type=int, help='target total duration of the selection, in seconds', default=36000)
     parser.add_argument("--add_precaution_spks", default=False, action="store_true", help="If True, add 4 more speakers (2 for each gender) that will have to be manually removed.")
     parser.add_argument("--accent", default=None, action='append')

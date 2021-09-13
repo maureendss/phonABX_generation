@@ -1,3 +1,14 @@
+dataset/
+
+#KALDI RELATED
+kaldi_setup/data/
+kaldi_setup/exp/
+kaldi_setup/mfcc/
+kaldi_setup/steps/
+kaldi_setup/utils/
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -127,3 +138,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+dataset/

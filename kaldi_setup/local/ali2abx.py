@@ -17,9 +17,9 @@ def ali2abx(alignment_file, output_item, keep_posflag=False):
             wav=data[i][0].split('-')[1]
             phon = data[i][4]
             start=data[i][2]
-            end = data[i][3]
+            end = format(round(float(data[i][2]) + float(data[i][3]),3),'.3f')
             prev_phon=data[i-1][4]
-            next_phon=data[i-1][4]
+            next_phon=data[i+1][4]
 
             item =  [wav, start, end, phon, prev_phon, next_phon, spk]
             items.append(item)
