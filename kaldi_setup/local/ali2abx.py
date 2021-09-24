@@ -45,7 +45,10 @@ def ali2abx(alignment_file, output_item, lang,  keep_posflag=False, save_phone_d
     items = filter_items(items, keep_posflag=keep_posflag, save_phone_dur=save_phone_dur)
     
     with open(output_item, 'w', encoding="utf8") as outfile :
-        outfile.write("#file onset offset #phone prev-phone next-phone speaker\n")
+        if save_phone_dur:
+            outfile.write("#file onset offset #phone prev-phone next-phone speaker center-phone-dur\n")
+        else:
+            outfile.write("#file onset offset #phone prev-phone next-phone speaker\n")            
         for item in items :
             outfile.write(" ".join(item)+"\n")
 
