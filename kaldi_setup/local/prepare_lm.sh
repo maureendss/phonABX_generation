@@ -10,7 +10,7 @@
 
 echo "=== Building a language model ..."
 
-
+set -e 
 # Language model order
 order=3
 

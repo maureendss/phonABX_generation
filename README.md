@@ -44,8 +44,9 @@ mkdir -p ../dataset/fr
 mkdir -p ../dataset/en
 
 for lang in en fr; do
-python local/ali2abx.py exp/${lang}/tri4b_ali/ali.ctm ../dataset/${lang}/${lang}.item
-python local/ali2abx.py --keep_pos exp/${lang}/tri4b_ali/ali.ctm ../dataset/${lang}/${lang}_pos.item
+python local/ali2abx.py exp/${lang}/tri4b_ali/ali.ctm ../dataset/${lang}/${lang}.item $lang
+python local/ali2abx.py --keep_pos exp/${lang}/tri4b_ali/ali.ctm ../dataset/${lang}/${lang}_pos.item $lang
+python local/ali2abx.py --save_phone_dur exp/${lang}/tri4b_ali/ali.ctm ../dataset/${lang}/${lang}.stats $lang 
 done
 ```
 
