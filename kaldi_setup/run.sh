@@ -37,8 +37,11 @@ if [ $stage -le 1 ]; then
   # Pronunciations for OOV words are obtained using a pre-trained Sequitur model
   #local/prepare_dict.sh --use_g2p True data/$lang $lang data/$lang/local_g2p
 
-  local/prepare_dict.sh --use_g2p False data/$lang $lang data/$lang/local
+  local/prepare_dict.sh --folding True --use_g2p False data/$lang $lang data/$lang/local
 
+
+
+  
   # Prepare data/lang and data/local/lang directories
   #utils/prepare_lang.sh data/$lang/local_g2p/dict \
   #  '<unk>' data/$lang/local_g2p/lang data/$lang/lang_g2p || exit 1
@@ -57,7 +60,7 @@ if [ $stage -le 2 ]; then
   mfccdir=mfcc
   # spread the mfccs over various machines, as this data-set is quite large.
 
-    steps/make_mfcc.sh --cmd "$train_cmd" --nj 20 data/$lang exp/make_mfcc/$lang $mfccdir
+    steps/make_mfcc.sh --cmd "$train_cmd" --nj 1 data/$lang exp/make_mfcc/$lang $mfccdir
     steps/compute_cmvn_stats.sh data/$lang exp/make_mfcc/$lang $mfccdir
 fi
 

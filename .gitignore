@@ -1,4 +1,4 @@
-dataset/
+*.wav #exclude wav files from dataset
 
 #KALDI RELATED
 kaldi_setup/data/

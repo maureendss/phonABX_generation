@@ -76,7 +76,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("alignment_file", help="df in pickle format from processing")
+    parser.add_argument("alignment_file", help="ali file from kaldi")
     parser.add_argument('output_item')
     parser.add_argument('lang', help="language (for phone folding). Currently accepted : 'en', 'fr'")
     parser.add_argument("--keep_posflag", help="keep position flag (eg AA_B instead of just AA", default=False, action="store_true")

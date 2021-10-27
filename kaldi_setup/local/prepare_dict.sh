@@ -10,11 +10,13 @@
 
 
 use_g2p=False #when true, we use the g2p, else we put all words as junk
+folding=False #when equal true, means we fold accordingly to https://docs.google.com/presentation/d/1hATl3iykOs47BK3cPfvb7Q_8NlB5qiVVA9gOtl4CYAk/edit#slide=id.gf9b4e683a9_0_57
+
 
 . utils/parse_options.sh
 
 echo $use_g2p
-
+echo "Folding $folding"
 
 #set -e 
 if [ $# != 3 ]; then
@@ -60,9 +62,19 @@ fi
 
 if [ $lang == "en" ]; then 
     echo "--- Striping stress and pronunciation variant markers from cmudict ..."
-    perl data/cmudict/scripts/make_baseform.pl \
+    if [ "${folding}" == "False" ]; then
+        perl data/cmudict/scripts/make_baseform.pl \
          $locdict/cmudict /dev/stdout |\
-        sed -e 's:^\([^\s(]\+\)([0-9]\+)\(\s\+\)\(.*\):\1\2\3:' | tr '[A-Z]' '[a-z]' > $locdict/cmudict-plain.txt
+            sed -e 's:^\([^\s(]\+\)([0-9]\+)\(\s\+\)\(.*\):\1\2\3:' | tr '[A-Z]' '[a-z]' > $locdict/cmudict-plain.txt
+
+    else
+        echo "Preparing with folding"
+        #DON4t DO THE FOLDING BASEFORME which is done in make_baseform.pl
+        perl local/cmu_make_baseform_withfolding.pl \
+             $locdict/cmudict /dev/stdout |\
+            sed -e 's:^\([^\s(]\+\)([0-9]\+)\(\s\+\)\(.*\):\1\2\3:' | tr '[A-Z]' \
+        '[a-z]' > $locdict/cmudict-plain.txt
+    fi
     #sed -e 's:^\([^\s(]\+\)([0-9]\+)\(\s\+\)\(.*\):\1\2\3:' | tr '[a-z]' '[A-Z]' > $locdict/cmudict-plain.txt
 
     
