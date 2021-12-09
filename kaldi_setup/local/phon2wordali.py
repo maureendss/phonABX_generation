@@ -40,7 +40,6 @@ def phone2prons(phone_df):
                 prons.append(row["phone"])
                 dur += row["dur"]
             elif row["phone_pos"] == "E": # end of word
-                end = row["end"]
                 prons.append(row["phone"])
                 dur += row["dur"]
                 pron_list.append((segment, start, dur, prons))
