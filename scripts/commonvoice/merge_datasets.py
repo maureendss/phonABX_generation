@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     
 
-    phone_item.to_csv(os.path.join(args.output_dir, "phone.item"), sep=" ")
-    gender_item.to_csv(os.path.join(args.output_dir, "gender.item"), sep=" ")
-    lang_item.to_csv(os.path.join(args.output_dir, "lang.item"), sep=" ")
+    phone_item.to_csv(os.path.join(args.output_dir, "phone.item"), sep=" ", index=False)
+    gender_item.to_csv(os.path.join(args.output_dir, "gender.item"), sep=" ", index=False)
+    lang_item.to_csv(os.path.join(args.output_dir, "lang.item"), sep=" ", index=False)
     
