@@ -17,7 +17,7 @@ def fold_phone(phone, lang):
                 
 
 
-def ali2abx(alignment_file, output_item, lang,  keep_posflag=False, save_phone_dur=False):
+def ali2abx(alignment_file, output_item, lang,  keep_posflag=False, save_phone_dur=False, abx_centralphone=False):
 
 
     data = [line.strip().split(" ") for line in  open(alignment_file, 'r', encoding="utf8")]
@@ -30,8 +30,14 @@ def ali2abx(alignment_file, output_item, lang,  keep_posflag=False, save_phone_d
             spk = data[i][0].split('-')[0]
             wav=data[i][0].split('-')[1]
             phon = fold_phone(data[i][4], lang)
-            start=data[i-1][2]
-            end = format(round(float(data[i+1][2]) + float(data[i+1][3]),3),'.3f')
+
+            if abx_centralphone : 
+                start=data[i][2]
+                end = format(round(float(data[i][2]) + float(data[i][3]),3),'.3f')
+            else :
+                start=data[i-1][2]
+                end = format(round(float(data[i+1][2]) + float(data[i+1][3]),3),'.3f')
+                
             prev_phon=fold_phone(data[i-1][4], lang)
             next_phon=fold_phone(data[i+1][4], lang)
             phon_dur=data[i][3]
@@ -81,9 +87,10 @@ if __name__ == "__main__":
     parser.add_argument('lang', help="language (for phone folding). Currently accepted : 'en', 'fr'")
     parser.add_argument("--keep_posflag", help="keep position flag (eg AA_B instead of just AA", default=False, action="store_true")
     parser.add_argument("--save_phone_dur", help="Also save the central phone duration in the last column (mainly for stats purposes)", default=False, action="store_true")
+    parser.add_argument("--abx_centralphone", help="when activated, the onset anf offset correspond to the central phone rather than the triplet. Useful when we want to do an ABX Phone - Context dependent", default=False, action="store_true")
 
     
     parser.parse_args()
     args, leftovers = parser.parse_known_args()
 
-    ali2abx(args.alignment_file, args.output_item, args.lang, keep_posflag=args.keep_posflag, save_phone_dur=args.save_phone_dur)
+    ali2abx(args.alignment_file, args.output_item, args.lang, keep_posflag=args.keep_posflag, save_phone_dur=args.save_phone_dur, abx_centralphone = args.abx_centralphone)
