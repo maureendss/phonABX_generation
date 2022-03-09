@@ -55,10 +55,11 @@ if __name__ == "__main__":
     gender_i["prev-phone"] = "NaN"
     gender_i = gender_i[["#file","onset" ,"offset","#phone", "prev-phone", "next-phone", "speaker"]]
     
-    #create phone items
-    # within phone and within gender (not within speaker)
+    #create lang items
+    #  within gender (not within speaker) and Can't do within phone...
     lang_i = full_item.copy()
-    lang_i["speaker"] = lang_i.apply(lambda x : "+".join([x["triphone"], x["gender"]]) , axis=1)
+#    lang_i["speaker"] = lang_i.apply(lambda x : "+".join([x["triphone"], x["gender"]]) , axis=1)
+    lang_i["speaker"] = lang_i.apply(lambda x : x["gender"] , axis=1)
     lang_i["#phone"] = lang_i["lang"].apply(lambda x : x)
     lang_i["next-phone"] = "NaN"
     lang_i["prev-phone"] = "NaN"
