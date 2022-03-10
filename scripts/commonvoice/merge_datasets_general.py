@@ -93,7 +93,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("path_item_1", help="path to the item file in the first language, eg /scratch2/mde/projects/phonABX_generation/dataset/en/en.item")
+    parser.add_argument("path_item_1", help="path to the item file in the first language, eg /scratch2/mde/projects/phonABX_generation/dataset/en+fr/phone.item")
     parser.add_argument("path_validated_1", help="path to the validated csv in CommonVoice in the 1st language, eg /scratch1/data/raw_data/commonvoice/cv-corpus-7.0-2021-07-21/en/validated.tsv")
     parser.add_argument("path_item_2", help="path to the item file in the 2nd language")
     parser.add_argument("path_validated_2", help="path to the validated csv in CommonVoice in the 2nd language")

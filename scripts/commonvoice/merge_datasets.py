@@ -12,13 +12,20 @@ def convert_phone_item(p_item, val, target="gender"):
     target_item = p_item.copy()
     if target == "gender":
         utt2target = pd.Series(val.gender.values,index=val.utt).to_dict()
+        spk2gender = {}
+        for index, row in tqdm(val.iterrows(), total=val.shape[0]):
+            if not row["client_id"] in spk2gender and pd.notna(row["gender"]):
+                spk2gender[row["client_id"]] = row["gender"]
+        #print(spk2gender)
+
+        target_item["#phone"] = target_item["speaker"].apply(lambda x : spk2gender[x])
+        
     elif target == "lang":
         utt2target = pd.Series(val.locale.values,index=val.utt).to_dict()
-
-
-    target_item["#phone"] = target_item["#file"].apply(lambda x : utt2target[x])
-    target_item["prev-phone"] = target_item["#file"].apply(lambda x : utt2target[x])
-    target_item["next-phone"] = target_item["#file"].apply(lambda x : utt2target[x])
+        target_item["#phone"] = target_item["#file"].apply(lambda x : utt2target[x])
+  
+    target_item["prev-phone"] = target_item["#file"].apply(lambda x : "NaN")
+    target_item["next-phone"] = target_item["#file"].apply(lambda x : "NaN") 
 
     return target_item
 
@@ -56,12 +63,13 @@ if __name__ == "__main__":
     phone_item = item_p_a.append(item_p_b)
                        
     #create gender items
-    gender_item = convert_phone_item(phone_item, val, target="gender")
-    lang_item = convert_phone_item(phone_item, val, target="lang")
+    #gender_item = convert_phone_item(phone_item, val, target="gender")
+    #lang_item = convert_phone_item(phone_item, val, target="lang")
 
     
 
     phone_item.to_csv(os.path.join(args.output_dir, "phone.item"), sep=" ", index=False)
-    gender_item.to_csv(os.path.join(args.output_dir, "gender.item"), sep=" ", index=False)
-    lang_item.to_csv(os.path.join(args.output_dir, "lang.item"), sep=" ", index=False)
-    
+    #gender_item.to_csv(os.path.join(args.output_dir, "gender.item"), sep=" ", index=False)
+    #lang_item.to_csv(os.path.join(args.output_dir, "lang.item"), sep=" ", index=False)
+
+    # python scripts/commonvoice/merge_datasets.py /scratch2/mde/projects/phonABX_generation/dataset/en/en_centralphone.item  /scratch1/data/raw_data/commonvoice/cv-corpus-7.0-2021-07-21/en/validated.tsv /scratch2/mde/projects/phonABX_generation/dataset/fr/fr_centralphone.item /scratch1/data/raw_data/commonvoice/cv-corpus-7.0-2021-07-21/fr/validated.tsv test
