@@ -6,12 +6,72 @@ from collections import defaultdict
 import os, re, time, warnings, sys
 import warnings
 import pickle
-import numpy as np 
+import numpy as np
 
-def convert_phone_item(p_item, val):
+
+### phone to categ
+fr_phone_char = {'gn': 'nasal',
+  'nn': 'nasal',
+  'mm': 'nasal',
+  'jj': 'fricative',
+  'ss': 'fricative',
+  'll': 'approximant',
+  'bb': 'plosive',
+  'kk': 'plosive',
+  'vv': 'fricative',
+  'zz': 'fricative',
+  'gg': 'plosive',
+  'ww': 'semi-vowel',
+  'pp': 'plosive',
+  'ff': 'fricative',
+  'ch': 'fricative',
+  'rr': 'fricative',
+  'yy': 'approximant',
+  'dd': 'plosive',
+  'tt': 'plosive',
+  'ou': 'vowel',
+  'ei': 'vowel',
+  'ii': 'vowel',
+  'au': 'vowel',
+  'aa': 'vowel',
+  'ai': 'vowel',
+  'on': 'vowel',
+  'an': 'vowel',
+  'oo': 'vowel',
+  'oe': 'vowel',
+  'eu': 'vowel',
+  'ee': 'vowel',
+  'un': 'vowel',
+  'uu': 'vowel',
+  'in': 'vowel',
+  'uy': 'vowel'}
+
+#removed nasal vowel
+
+en_phone_char = {
+    'dh': 'fricative', 'ah':'vowel','ah0':'vowel', 'v':'fricative', 'ae':'vowel', 'l':'approximant', 'iy':'vowel',
+    'w':'approximant', 'z':'fricative', 'f':'fricative', 'ih':'vowel', 'd':'plosive', 'th':'fricative',
+    'eh':'vowel', 'n':'nasal', 's':'fricative', 'ao':'vowel', 'g':'plosive', 'jh':'affricate', 'k':'plosive',
+    'm':'nasal', 'ay':'vowel', 'er':'vowel', 'ow':'vowel', 'r':'approximant', 'y':'approximant', 'uw':'vowel', 
+    'hh':'fricative', 't':'plosive', 'p':'plosive', 'sh':'fricative', 'uh':'vowel', 'aa':'vowel', 'ng':'nasal', 
+    'ey':'vowel', 'b':'plosive', 'aw':'vowel', 'ch':'affricate', 'oy':'vowel', 'zh':'fricative'
+}
+
+
+#------------------
+
+
+
+
+def convert_phone_item(p_item, val, phone2char):
     target_item = p_item.copy()
     target_item["triphone"] = target_item["prev-phone"] + "-" + target_item["#phone"] + "-" + target_item["next-phone"]
+    target_item["prev-phone_char"] = target_item["prev-phone"].apply(lambda x : phone2char[x])
+    target_item["next-phone_char"] = target_item["next-phone"].apply(lambda x : phone2char[x])
+    target_item["#phone_char"] = target_item["#phone"].apply(lambda x : phone2char[x])
+    target_item["triphone_char"] = target_item["prev-phone_char"] + "-" + target_item["#phone_char"] + "-" + target_item["next-phone_char"]    
     spk2gender = {}
+    
     for index, row in tqdm(val.iterrows(), total=val.shape[0]):
         if not row["client_id"] in spk2gender and pd.notna(row["gender"]):
             spk2gender[row["client_id"]] = row["gender"]
@@ -63,7 +123,8 @@ if __name__ == "__main__":
     merged_item = item_p_a.append(item_p_b)
                        
     #create gender items
-    final_item = convert_phone_item(merged_item, val)
+    en_phone_char.update(fr_phone_char)
+    final_item = convert_phone_item(merged_item, val, en_phone_char)
 
     final_item.to_csv(os.path.join(args.output_dir, "full.item"), sep=" ", index=False)
 

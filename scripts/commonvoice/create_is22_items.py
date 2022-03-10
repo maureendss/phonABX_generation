@@ -8,21 +8,55 @@ import warnings
 import pickle
 import numpy as np 
 
-def convert_phone_item(p_item, val, target="gender"):
-    target_item = p_item.copy()
-    if target == "gender":
-        utt2target = pd.Series(val.gender.values,index=val.utt).to_dict()
-        spk2gender = {}
-        for index, row in tqdm(val.iterrows(), total=val.shape[0]):
-            if not row["client_id"] in spk2gender and pd.notna(row["gender"]):
-                spk2gender[row["client_id"]] = row["gender"]
-        #print(spk2gender)
 
-        target_item["#phone"] = target_item["speaker"].apply(lambda x : spk2gender[x])
-    target_item["prev-phone"] = target_item["#file"].apply(lambda x : "NaN")
-    target_item["next-phone"] = target_item["#file"].apply(lambda x : "NaN") 
+### phone to categ
+fr_phone_char = {'gn': 'nasal',
+  'nn': 'nasal',
+  'mm': 'nasal',
+  'jj': 'fricative',
+  'ss': 'fricative',
+  'll': 'approximant',
+  'bb': 'plosive',
+  'kk': 'plosive',
+  'vv': 'fricative',
+  'zz': 'fricative',
+  'gg': 'plosive',
+  'ww': 'semi-vowel',
+  'pp': 'plosive',
+  'ff': 'fricative',
+  'ch': 'fricative',
+  'rr': 'fricative',
+  'yy': 'approximant',
+  'dd': 'plosive',
+  'tt': 'plosive',
+  'ou': 'vowel',
+  'ei': 'vowel',
+  'ii': 'vowel',
+  'au': 'vowel',
+  'aa': 'vowel',
+  'ai': 'vowel',
+  'on': 'nasal-vowel',
+  'an': 'nasal-vowel',
+  'oo': 'vowel',
+  'oe': 'vowel',
+  'eu': 'vowel',
+  'ee': 'vowel',
+  'un': 'nasal-vowel',
+  'uu': 'vowel',
+  'in': 'nasal-vowel',
+  'uy': 'vowel'}
 
-    return target_item
+en_phone_char = {
+    'dh': 'fricative', 'ah':'vowel','ah0':'vowel', 'v':'fricative', 'ae':'vowel', 'l':'approximant', 'iy':'vowel',
+    'w':'approximant', 'z':'fricative', 'f':'fricative', 'ih':'vowel', 'd':'plosive', 'th':'fricative',
+    'eh':'vowel', 'n':'nasal', 's':'fricative', 'ao':'vowel', 'g':'plosive', 'jh':'affricate', 'k':'plosive',
+    'm':'nasal', 'ay':'vowel', 'er':'vowel', 'ow':'vowel', 'r':'approximant', 'y':'approximant', 'uw':'vowel', 
+    'hh':'fricative', 't':'plosive', 'p':'plosive', 'sh':'fricative', 'uh':'vowel', 'aa':'vowel', 'ng':'nasal', 
+    'ey':'vowel', 'b':'plosive', 'aw':'vowel', 'ch':'affricate', 'oy':'vowel', 'zh':'fricative'
+}
+#------------------
+
+
 
 if __name__ == "__main__":
     import argparse
@@ -58,13 +92,15 @@ if __name__ == "__main__":
     #create lang items
     #  within gender (not within speaker) and Can't do within phone...
     lang_i = full_item.copy()
-#    lang_i["speaker"] = lang_i.apply(lambda x : "+".join([x["triphone"], x["gender"]]) , axis=1)
-    lang_i["speaker"] = lang_i.apply(lambda x : x["gender"] , axis=1)
+    #    lang_i["speaker"] = lang_i.apply(lambda x : "+".join([x["triphone"], x["gender"]]) , axis=1)
+    #    lang_i["speaker"] = lang_i.apply(lambda x : x["gender"] , axis=1)
+    lang_i["speaker"] = lang_i.apply(lambda x : "+".join([x["triphone_char"], x["gender"]]) , axis=1)
     lang_i["#phone"] = lang_i["lang"].apply(lambda x : x)
     lang_i["next-phone"] = "NaN"
     lang_i["prev-phone"] = "NaN"
     lang_i = lang_i[["#file","onset" ,"offset","#phone", "prev-phone", "next-phone", "speaker"]]   
 
+    
     
 
     gender_i.to_csv(os.path.join(args.output_dir, "is22_gender.item"), sep=" ", index=False)
